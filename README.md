@@ -32,6 +32,24 @@ npm start
 (O frontend estará rodando em http://localhost:4200)
 
 
+## Testes
+
+npm install axios --save-dev
+
+cd tests
+
+(RODAR
+curl -X POST http://localhost:8080/clientes -H "Content-Type: application/json" -d '{
+  "nome": "Cliente Teste",
+  "email": "teste@example.com",
+  "saldo": 5000
+}'
+)
+
+npm test
+
+
+
 -------------------------------------------------------------------
 
 ## Introdução
