@@ -42,9 +42,9 @@ class ClienteService {
             throw new Error('Valor do depósito deve ser um número positivo');
         }
 
+        const novoSaldo = await this.clienteRepository.atualizarSaldoComTransacao(id, 'depositar', valor);
         const cliente = await this.buscarClientePorId(id);
-        cliente.depositar(valor);
-        await this.clienteRepository.updateSaldo(id, cliente.saldo);
+        cliente.saldo = novoSaldo;
         return cliente;
     }
 
@@ -53,9 +53,9 @@ class ClienteService {
             throw new Error('Valor do saque deve ser um número positivo');
         }
 
+        const novoSaldo = await this.clienteRepository.atualizarSaldoComTransacao(id, 'sacar', valor);
         const cliente = await this.buscarClientePorId(id);
-        cliente.sacar(valor);
-        await this.clienteRepository.updateSaldo(id, cliente.saldo);
+        cliente.saldo = novoSaldo;
         return cliente;
     }
 }
