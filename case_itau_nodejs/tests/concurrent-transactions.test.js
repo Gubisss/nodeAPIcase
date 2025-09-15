@@ -5,6 +5,23 @@ const API_BASE_URL = 'http://localhost:8080'; // Porta correta da sua API
 const CLIENT_ID = 1;                          // ID do cliente para teste
 const DEBIT_AMOUNT = 100;                     // Valor a ser debitado em cada requisição
 const CONCURRENT_REQUESTS = 10;               // Número de requisições simultâneas
+const MAX_RETRIES = 3;                        // Número máximo de tentativas por requisição
+const RETRY_DELAY = 100;                      // Tempo entre tentativas em ms
+
+// Função helper para esperar um tempo determinado
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Função para fazer uma requisição com retry
+async function makeRequestWithRetry(requestFn, retries = MAX_RETRIES, delay = RETRY_DELAY) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            return await requestFn();
+        } catch (error) {
+            if (i === retries - 1) throw error;
+            await sleep(delay * Math.pow(2, i)); // Exponential backoff
+        }
+    }
+}
 
 async function runTest() {
     console.log('\n=== Teste de Concorrência em Transações Financeiras ===\n');
@@ -22,11 +39,13 @@ async function runTest() {
         console.log(`   - Saldo final esperado: R$ ${expectedFinalBalance}`);
         console.log('\n🚀 Iniciando requisições simultâneas...\n');
 
-        // 2. Criar requisições de saque simultâneas
+        // 2. Criar requisições de saque simultâneas com retry
         const requests = Array(CONCURRENT_REQUESTS).fill().map(() => 
-            axios.post(`${API_BASE_URL}/clientes/${CLIENT_ID}/sacar`, {
-                valor: DEBIT_AMOUNT
-            })
+            makeRequestWithRetry(() => 
+                axios.post(`${API_BASE_URL}/clientes/${CLIENT_ID}/sacar`, {
+                    valor: DEBIT_AMOUNT
+                })
+            )
         );
 
         // 3. Executar todas as requisições simultaneamente
